@@ -1,6 +1,6 @@
 import numpy
 import scipy.special
-from libs.multivariateGaussianModel import logpdf_GAU_ND
+from libs.multivariate_gaussian_model import logpdf_GAU_ND
 from libs.dimensionality_reduction_lib import within_class_covariance_matrix
 
 
@@ -140,19 +140,40 @@ def optimized_tied_gaussian_label_predict(DE, means, tiedCovariance, Pc = []):
     SPost = numpy.exp(logSPost)
     return numpy.argmax(SPost, axis=0)
 
-def loglikelihoods(DTE,means,S_matrices,prior):
-    likelihoods=[]
-    logSJoint=[]
-    logSMarginal=0
-    for i in range(2):
-        mu=means[i]
-        c=S_matrices[i]
-        ll= logpdf_GAU_ND(DTE, mu, c)
-        likelihoods.append(ll)
-        logSJoint.append(ll+numpy.log(prior[i]))
+class GaussianClassificator:
+    def __init__(self, type, prior):
+        self.type = type
+        self.prior = prior
+
+    def train(self, DTR, LTR):
+        means, covariances = (None, None)
+        if self.type == "MVG":
+            means, covariances = gaussian_params_stimator(DTR, LTR)
+        if self.type == "Naive Bayes":
+            means, covariances = naive_bayes_gaussian_params_estimator(DTR, LTR)
+        if self.type == "Tied":
+            means, covariances = tied_gaussian_params_estimator(DTR, LTR)
+        if self.type == "Tied Naive Bayes":
+            means, covariances = tied_naive_bayes_gaussian_params_estimator(DTR, LTR)
         
-    logSMarginal = vrow(scipy.special.logsumexp(logSJoint, axis=0))
-    logSPost = logSJoint - logSMarginal
-    llr = logSPost[1,:] - logSPost[0,:] - numpy.log(prior[1]/prior[0])
+        self.means = means
+        self.covariances = covariances
+
+        return self.means, self.covariances
     
-    return llr
+    def compute_scores(self, DTE):
+        likelihoods=[]
+        logSJoint=[]
+        logSMarginal=0
+        for i in range(2):
+            mu=self.means[i]
+            c=self.covariances[i]
+            ll= logpdf_GAU_ND(DTE, mu, c)
+            likelihoods.append(ll)
+            logSJoint.append(ll+numpy.log(self.prior[i]))
+            
+        logSMarginal = vrow(scipy.special.logsumexp(logSJoint, axis=0))
+        logSPost = logSJoint - logSMarginal
+        llr = logSPost[1,:] - logSPost[0,:] - numpy.log(self.prior[1]/self.prior[0])
+        
+        return llr

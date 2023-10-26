@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import sys
 from libs.evaluation import DCF_min_impl
 from libs.dimensionality_reduction_lib import PCA_impl
-from libs.gaussian_classification import loglikelihoods
 sys.path.insert(0, 'plots')
 
 def load(train_path, test_path):
@@ -84,25 +83,40 @@ def plot_cross_feature(D, L, path):
             plt.close()
 
 def component_variance_PCA_plot(D, path):
-    # Calcola i valori propri della matrice di covarianza
     DC = center_data(D)
     C = compute_covariance_matrix(DC)
     eigenvalues, _ = np.linalg.eigh(C)
-    
-    # Ordina i valori propri in ordine decrescente
     eigenvalues = eigenvalues[::-1]
-    
-    # Calcola la varianza spiegata per ogni componente principale
     explained_variance = eigenvalues / np.sum(eigenvalues)
     y_min, y_max = plt.ylim()
     y_values = np.linspace(y_min, y_max, 20)
     plt.yticks(y_values)
     plt.xlim(right=9)
-    # Creare un grafico della varianza spiegata
     plt.plot(np.cumsum(explained_variance))
     plt.xlabel('Components number')
     plt.ylabel('Cumulative variance')
     plt.grid()
+    plt.savefig(path)
+    plt.close()
+
+def plot_log_reg(lrsPCA, lrsPCAZnorm, path):
+    lamb = np.logspace(-7, 2, num=9)
+
+    plt.semilogx(lamb,lrsPCA["6"], label = "PCA 6")
+    plt.semilogx(lamb,lrsPCA["7"], label = "PCA 7")
+    plt.semilogx(lamb,lrsPCA["8"], label = "PCA 8")
+    plt.semilogx(lamb,lrsPCA["9"], label = "PCA 9")
+    plt.semilogx(lamb,lrsPCA["None"], label = "No PCA Znorm")
+    plt.semilogx(lamb,lrsPCAZnorm["6"], label = "PCA 6 Znorm")
+    plt.semilogx(lamb,lrsPCAZnorm["7"], label = "PCA 7 Znorm")
+    plt.semilogx(lamb,lrsPCAZnorm["8"], label = "PCA 8 Znorm")
+    plt.semilogx(lamb,lrsPCAZnorm["9"], label = "PCA 9 Znorm")
+    plt.semilogx(lamb,lrsPCAZnorm["None"], label = "No PCA Znorm")
+   
+    plt.xlabel("Lambda")
+    plt.ylabel("DCF_min")
+    plt.legend()
+    plt.title("0.1")
     plt.savefig(path)
     plt.close()
 
@@ -115,7 +129,7 @@ def normalize_zscore(D, mu=[], sigma=[]):
     ZD = ZD / mcol(sigma)
     return ZD, mu, sigma
 
-def kfold(D, L, param_estimator, options):
+def kfold(D, L, model, options):
         
         K = options["K"]
         pca = options["pca"]
@@ -153,8 +167,8 @@ def kfold(D, L, param_estimator, options):
                 DTR, P = PCA_impl(DTR, pca)
                 DTE = np.dot(P.T, DTE)
                 
-            means, covariances = param_estimator(DTR, LTR)
-            scores_i = loglikelihoods(DTE, means, covariances, [1-pi, pi])
+            model.train(DTR, LTR)
+            scores_i = model.compute_scores(DTE)
             scores = np.append(scores, scores_i)
             labels = np.append(labels, LTE)
             
