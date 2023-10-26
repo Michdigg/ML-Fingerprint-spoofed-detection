@@ -7,6 +7,7 @@ from libs.utils import *
 from libs.dimensionality_reduction_lib import pca_projection, lda_projection
 from libs.gaussian_classification import *
 from libs.binary_logistic_regression import *
+from libs.svm import *
 
 if __name__=='__main__':
     (DTR,LTR), (DTE,LTE)=load('dataset/Train.txt','dataset/Test.txt')
@@ -39,6 +40,8 @@ if __name__=='__main__':
                 logRegModel = LogRegClassificator(l, pi)
                 min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
                 lrsPCA[str(options["pca"])].append(min_DCF)
+                print("PCA 1")
+            print("Lambda 1")
         print("fatto 1")
 
         lrsPCAZnorm = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : [],}
@@ -47,6 +50,8 @@ if __name__=='__main__':
                 logRegModel = LogRegClassificator(l, pi)
                 min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
                 lrsPCAZnorm[str(options["pca"])].append(min_DCF)
+                print("PCA 1")
+            print("Lambda 1")
         print("fatto 2")
 
         plot_log_reg(lrsPCA, lrsPCAZnorm, "plots/logistic_regression/lr_" + str(pi))
@@ -57,7 +62,6 @@ if __name__=='__main__':
 if __name__=='a':
     """ 1. PLOT FEATURES """
 
-    # remove dataset mean
     DC = center_data(DTR)
     plot_feature(DC, LTR, "plots/feature_display/single_feature/feature_")
     plot_cross_feature(DC, LTR, "plots/feature_display/cross_feature/feature_")
@@ -83,6 +87,11 @@ if __name__=='a':
 
     # PCA and variance plot
     component_variance_PCA_plot(DTR, "plots/dimensionality_reduction/PCA/component_variance_plot")
+
+    #Pearson coefficients
+    plot_correlations(DTR, "plots/feature_display/pearson_correlation_whole_dataset")
+    plot_correlations(DTR[:, LTR == 0], "plots/feature_display/pearson_correlation_authentic_dataset", cmap="Blues")
+    plot_correlations(DTR[:, LTR == 1], "plots/feature_display/pearson_correlation_spoofed_dataset", cmap="Reds")
 
     """ 3. Gaussian Classificator """
 
@@ -121,3 +130,110 @@ if __name__=='a':
         mvgNBTiedMinDCF.append(min_DCF)
 
     dimension_DCF_plot_gaussian("tied_naive_bayes", mvgNBTiedMinDCF)
+
+    """ 4. Logistic Regression """
+
+    optionsPca6ZNorm =   {"K":5,"pca":6,"pi":0.5,"costs":(1,10),"znorm" : True}
+    optionsPca7ZNorm =   {"K":5,"pca":7,"pi":0.5,"costs":(1,10),"znorm" : True}
+    optionsPca8ZNorm =   {"K":5,"pca":8,"pi":0.5,"costs":(1,10),"znorm" : True}
+    optionsPca9ZNorm =   {"K":5,"pca":9,"pi":0.5,"costs":(1,10),"znorm" : True}
+    optionsNoPcaZNorm =   {"K":5,"pca":None,"pi":0.5,"costs":(1,10),"znorm" : True}
+
+    optionsListZNorm = [optionsPca6ZNorm, optionsPca7ZNorm, optionsPca8ZNorm, optionsPca9ZNorm, optionsNoPcaZNorm]
+
+    # Logistic Regression
+
+    for pi in ([0.1, 0.5, 0.9]):
+        lrsPCA = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : []}
+        for l in np.logspace(-6, 2, num=9):
+            for i, options in enumerate(optionsList):
+                logRegModel = LogRegClassificator(l, pi)
+                min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
+                lrsPCA[str(options["pca"])].append(min_DCF)
+
+        lrsPCAZnorm = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : []}
+        for l in np.logspace(-6, 2, num=9):
+            for i, options in enumerate(optionsListZNorm):
+                logRegModel = LogRegClassificator(l, pi)
+                min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
+                lrsPCAZnorm[str(options["pca"])].append(min_DCF)
+
+        plot_log_reg(lrsPCA, lrsPCAZnorm, "plots/logistic_regression/lr_" + str(pi))
+    
+    # Quadratic Logistic Regression
+
+    for pi in ([0.1, 0.5, 0.9]):
+        lrsPCA = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : []}
+        for l in np.logspace(-6, 2, num=9):
+            for i, options in enumerate(optionsList):
+                logRegModel = QuadLogRegClassificator(l, pi)
+                min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
+                lrsPCA[str(options["pca"])].append(min_DCF)
+
+        lrsPCAZnorm = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : []}
+        for l in np.logspace(-6, 2, num=9):
+            for i, options in enumerate(optionsListZNorm):
+                logRegModel = QuadLogRegClassificator(l, pi)
+                min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
+                lrsPCAZnorm[str(options["pca"])].append(min_DCF)
+        
+        plot_log_reg(lrsPCA, lrsPCAZnorm, "plots/logistic_regression/quadratic/lr_" + str(pi))
+
+    """ 5. Support Vector Machines """
+
+    # Linear SVM
+
+    optionsSVM1 =   {"K":5,"pca":6,"pi":0.5,"costs":(1,10),"znorm" : False}
+    optionsSVM2 =   {"K":5,"pca":8,"pi":0.5,"costs":(1,10),"znorm" : False}
+    optionsSVM3 =   {"K":5,"pca":None,"pi":0.5,"costs":(1,10),"znorm" : False}
+
+    optionsListSVM = [optionsSVM1, optionsSVM2, optionsSVM3]
+
+    optionsSVM1Znorm =   {"K":5,"pca":6,"pi":0.5,"costs":(1,10),"znorm" : True}
+    optionsSVM2Znorm =   {"K":5,"pca":8,"pi":0.5,"costs":(1,10),"znorm" : True}
+    optionsSVM3Znorm =   {"K":5,"pca":None,"pi":0.5,"costs":(1,10),"znorm" : True}
+
+    optionsListSVMZnorm = [optionsSVM1Znorm, optionsSVM2Znorm, optionsSVM3Znorm]
+
+    svm_res = {"6" : [], "8" : [], "None" : []}
+    svm_res_Znorm = {"6" : [], "8" : [], "None" : []}
+    for C in np.logspace(-5, 2, num=8):
+        for i, options in enumerate(optionsListSVM):
+            SVMModel = SVMClassificator(1, C, 0.1)
+            min_DCF, scores, labels = kfold(DTR, LTR, SVMModel,options)
+            min_DCF = min_DCF if min_DCF <= 1 else 1
+            svm_res[str(options["pca"])].append(min_DCF)
+            
+        for i, options in enumerate(optionsListSVMZnorm):
+            SVMModel = SVMClassificator(1, C, 0.1)
+            min_DCF, scores, labels = kfold(DTR, LTR, SVMModel,options)
+            min_DCF = min_DCF if min_DCF <= 1 else 1
+            svm_res_Znorm[str(options["pca"])].append(min_DCF)
+    
+    plot_svm(svm_res, svm_res_Znorm, "plots/support_vectors_machines/linear/SVM_linear")
+
+    # Quadratic SVM - Polynomial Kernel
+    for value in [0, 1]:  
+        quad_svm_res = {"6" : [], "8" : [], "None" : []}
+        for K_svm in [0,1]:
+            for C in np.logspace(-3, -1, num=3):
+                for i, options in enumerate(optionsListSVM):
+                    SVMkernelModel = SVMKernelClassificator(K_svm, C, 0.1, "polynomial", value)
+                    min_DCF, scores, labels = kfold(DTR, LTR, SVMkernelModel, options)
+                    min_DCF = min_DCF if min_DCF <= 1 else 1
+                    quad_svm_res[str(options["pca"])].append(min_DCF)
+            
+            plot_svm(svm_res, svm_res_Znorm, "plots/support_vectors_machines/quadratic/polynomial/SVM_polynomialC" + str(value) + "K" + str(K_svm))   
+    
+    # Quadratic SVM - RBF
+    for value in [0.01,0.001,0.0001]:  
+        quad_svm_res = {"6" : [], "8" : [], "None" : []}
+        for K_svm in [0,1]:
+            for C in np.logspace(-3, -1, num=3):
+                for i, options in enumerate(optionsListSVM):
+                    SVMkernelModel = SVMKernelClassificator(K_svm, C, 0.1, "RBF", value)
+                    min_DCF, scores, labels = kfold(DTR, LTR, SVMkernelModel, options)
+                    min_DCF = min_DCF if min_DCF <= 1 else 1
+                    quad_svm_res[str(options["pca"])].append(min_DCF)
+            
+            plot_svm(svm_res, svm_res_Znorm, "plots/support_vectors_machines/quadratic/RBF/SVM_polynomialGamma" + str(value) + "K" + str(K_svm))   

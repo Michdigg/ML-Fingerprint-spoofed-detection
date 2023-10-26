@@ -83,9 +83,9 @@ class SVMKernelClassificator:
         self.LTR = []
         
         
-        if mode == "poly":
+        if mode == "polynomial":
             self.kernel_func = polynomial_kernel_with_bias
-        elif mode == "rbf":
+        elif mode == "RBF":
             self.kernel_func = rbf_kernel_with_bias
         else:
             self.kernel_func = polynomial_kernel_with_bias

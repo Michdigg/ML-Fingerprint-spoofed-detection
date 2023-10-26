@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import sys
 from libs.evaluation import DCF_min_impl
 from libs.dimensionality_reduction_lib import PCA_impl
@@ -116,7 +117,22 @@ def plot_log_reg(lrsPCA, lrsPCAZnorm, path):
     plt.xlabel("Lambda")
     plt.ylabel("DCF_min")
     plt.legend()
-    plt.title("0.1")
+    plt.savefig(path)
+    plt.close()
+
+def plot_svm(lrsPCA, lrsPCAZnorm, path):
+    C_values = np.logspace(-5, 2, num=8)
+
+    plt.semilogx(C_values,lrsPCA["6"], label = "PCA 7")
+    plt.semilogx(C_values,lrsPCA["8"], label = "PCA 8")
+    plt.semilogx(C_values,lrsPCA["None"], label = "No PCA Znorm")
+    plt.semilogx(C_values,lrsPCAZnorm["6"], label = "PCA 7 Znorm")
+    plt.semilogx(C_values,lrsPCAZnorm["8"], label = "PCA 8 Znorm")
+    plt.semilogx(C_values,lrsPCAZnorm["None"], label = "No PCA Znorm")
+   
+    plt.xlabel("C")
+    plt.ylabel("DCF_min")
+    plt.legend()
     plt.savefig(path)
     plt.close()
 
@@ -186,3 +202,33 @@ def dimension_DCF_plot_gaussian(modelName, DCFList):
     plt.plot(np.linspace(6,10,5),DCFList)
     plt.savefig(path)
     plt.close()
+
+def compute_correlation(X, Y):
+    x_sum = np.sum(X)
+    y_sum = np.sum(Y)
+
+    x2_sum = np.sum(X ** 2)
+    y2_sum = np.sum(Y ** 2)
+
+    sum_cross_prod = np.sum(X * Y.T)
+
+    n = X.shape[0]
+    numerator = n * sum_cross_prod - x_sum * y_sum
+    denominator = np.sqrt((n * x2_sum - x_sum ** 2) * (n * y2_sum - y_sum ** 2))
+
+    corr = numerator / denominator
+    return corr
+
+def plot_correlations(DTR, path, cmap="Greys"):
+    corr = np.zeros((10, 10))
+    for x in range(10):
+        for y in range(10):
+            X = DTR[x, :]
+            Y = DTR[y, :]
+            pearson_elem = compute_correlation(X, Y)
+            corr[x][y] = pearson_elem
+
+    sns.set()
+    heatmap = sns.heatmap(np.abs(corr), linewidth=0.2, cmap=cmap, square=True, cbar=False)
+    fig = heatmap.get_figure()
+    fig.savefig(path + ".svg")
