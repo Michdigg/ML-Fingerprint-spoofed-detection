@@ -28,9 +28,9 @@ if __name__=='__main__':
 
     modes_auth_spoofed = ["full", "diag", "tied"]
     n_components_auth_spoofed = [1, 2, 4 , 6, 8]
-    gmm_res = {"6" : [], "8" : [], "None" : []}
     print("GMM")
     for modes_a_s in itertools.product(modes_auth_spoofed, modes_auth_spoofed):
+        gmm_res = {"6" : [], "8" : [], "None" : []}
         for n_components_a_s in itertools.product(n_components_auth_spoofed, n_components_auth_spoofed):
             for i, options in enumerate(optionsListGMM):
                 GMMModel = GMMClassificator(n_components_a_s, modes_a_s, 0.01, 0.1, prior, Cfp, Cfn) 
@@ -41,7 +41,7 @@ if __name__=='__main__':
                       + " Not-Target components : " + str(n_components_a_s[0]) + " Target components: " + str(n_components_a_s[1]) 
                       + " PCA: " + str(options["pca"]) + " DCF min: " + str(min_DCF))
 
-    plot_gmm(gmm_res, modes_a_s, n_components_a_s, "plots/gaussian_mixture_models/GMM_AUTH" + str(modes_a_s[1] + str(n_components_a_s[1]) + "_SPOOFED") + str(modes_a_s[1] + str(n_components_a_s[1])))
+        plot_gmm(gmm_res, modes_a_s, n_components_a_s, "plots/gaussian_mixture_models/GMM_AUTH" + str(modes_a_s[1] + str(n_components_a_s[1]) + "_SPOOFED") + str(modes_a_s[1] + str(n_components_a_s[1])))
 
 if __name__=='a':
     
