@@ -36,14 +36,14 @@ def logpdf_GMM(X, gmm):
 
 class GMMClassificator:
     
-    def __init__(self, target_max_comp, not_target_max_comp, mode_target,mode_not_target,psi,alpha,prior,Cfp,Cfn):
-        self.not_target_max_comp = not_target_max_comp 
-        self.target_max_comp = target_max_comp 
+    def __init__(self, n_components, mode ,psi,alpha,prior,Cfp,Cfn):
+        self.not_target_max_comp = n_components[0] 
+        self.target_max_comp = n_components[1]
         self.gmm0 = None
         self.gmm1 = None
         self.model = None
-        self.mode_target = mode_target
-        self.mode_not_target = mode_not_target
+        self.mode_target = mode[0]
+        self.mode_not_target = mode[1]
         self.psi = psi    
         self.alpha = alpha   
         

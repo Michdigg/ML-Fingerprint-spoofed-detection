@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+import itertools
 import matplotlib.pyplot as plt
 sys.path.insert(0, 'libs')
 sys.path.insert(1, 'dataset')
@@ -8,8 +9,15 @@ from libs.dimensionality_reduction_lib import pca_projection, lda_projection
 from libs.gaussian_classification import *
 from libs.binary_logistic_regression import *
 from libs.svm import *
+from libs.gaussian_mixture_models import *
 
 if __name__=='__main__':
+    n_components = [1, 2, 4 , 6, 8]
+    for c in itertools.product(n_components, n_components):
+        print(c)
+
+if __name__=='a':
+    
     (DTR,LTR), (DTE,LTE)=load('dataset/Train.txt','dataset/Test.txt')
     DTR = DTR.T
     LTR = LTR.T
@@ -32,34 +40,6 @@ if __name__=='__main__':
 
     optionsListZNorm = [optionsPca6ZNorm, optionsPca7ZNorm, optionsPca8ZNorm, optionsPca9ZNorm, optionsNoPcaZNorm]
 
-    for pi in ([0.1, 0.5, 0.9]):
-        print("Inizio..." + str(pi))
-        lrsPCA = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : [],}
-        for l in np.logspace(-6, 2, num=9):
-            for i, options in enumerate(optionsList):
-                logRegModel = LogRegClassificator(l, pi)
-                min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
-                lrsPCA[str(options["pca"])].append(min_DCF)
-                print("PCA 1")
-            print("Lambda 1")
-        print("fatto 1")
-
-        lrsPCAZnorm = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : [],}
-        for l in np.logspace(-6, 2, num=9):
-            for i, options in enumerate(optionsListZNorm):
-                logRegModel = LogRegClassificator(l, pi)
-                min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
-                lrsPCAZnorm[str(options["pca"])].append(min_DCF)
-                print("PCA 1")
-            print("Lambda 1")
-        print("fatto 2")
-
-        plot_log_reg(lrsPCA, lrsPCAZnorm, "plots/logistic_regression/lr_" + str(pi))
-        print("Salvato")
-
-    print("")
-
-if __name__=='a':
     """ 1. PLOT FEATURES """
 
     DC = center_data(DTR)
@@ -237,3 +217,27 @@ if __name__=='a':
                     quad_svm_res[str(options["pca"])].append(min_DCF)
             
             plot_svm(svm_res, svm_res_Znorm, "plots/support_vectors_machines/quadratic/RBF/SVM_polynomialGamma" + str(value) + "K" + str(K_svm))   
+
+    """ 6. Gaussian Mixture Models """
+
+    optionsGMM1 =   {"K":5,"pca":6,"pi":0.5,"costs":(1,10),"znorm" : False}
+    optionsGMM2 =   {"K":5,"pca":8,"pi":0.5,"costs":(1,10),"znorm" : False}
+    optionsGMM3 =   {"K":5,"pca":None,"pi":0.5,"costs":(1,10),"znorm" : False}
+
+    optionsListGMM = [optionsGMM1, optionsGMM2, optionsGMM3]
+
+    modes_auth_spoofed = ["full", "diag", "tied"]
+    n_components_auth_spoofed = [1, 2, 4 , 6, 8]
+    for modes_a_s in itertools.product(modes_auth_spoofed, modes_auth_spoofed):
+        for n_components_a_s in itertools.product(n_components_auth_spoofed, n_components_auth_spoofed):
+            gmm_res = {"6" : [], "8" : [], "None" : []}
+            for i, options in enumerate(optionsListGMM):
+                GMMModel = GMMClassificator(n_components_a_s, modes_a_s, 0.01, 0.1, prior, Cfp, Cfn) 
+                min_DCF, scores, labels = kfold(DTR, LTR, GMMModel, options)
+                min_DCF = min_DCF if min_DCF <= 1 else 1
+                gmm_res[str(options["pca"])].append(min_DCF)
+                print("Not-Target mode : " + str(modes_a_s[0]) + " Target mode: " + str(modes_a_s[1]) 
+                      + " Not-Target components : " + str(n_components_a_s[0]) + " Target components: " + str(n_components_a_s[1]) 
+                      + " PCA: " + str(options["pca"]) + " DCF min: " + str(min_DCF))
+
+            plot_gmm(gmm_res, modes_a_s, n_components, "plots/gaussian_mixture_models/GMM_AUTH" + str(modes_a_s[1] + str(n_components_a_s[1]) + "_SPOOFED") + str(modes_a_s[1] + str(n_components_a_s[1])))
