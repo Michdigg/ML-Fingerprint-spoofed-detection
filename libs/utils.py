@@ -136,6 +136,17 @@ def plot_svm(lrsPCA, lrsPCAZnorm, path):
     plt.savefig(path)
     plt.close()
 
+def plot_gmm(gmm_res, modes_a_s, n_components_a_s, path):
+    plt.plot([1, 2, 4 , 6, 8], gmm_res["6"])
+    plt.plot([1, 2, 4 , 6, 8], gmm_res["8"])
+    plt.plot([1, 2, 4 , 6, 8], gmm_res["None"])
+    plt.xlabel("Components Spoofed")
+    plt.ylabel("DCF_min")
+    plt.title("Mode Authentic: " + str(modes_a_s[1]) + ", Mode Spoofed: " + str(modes_a_s[0]) + " Components Auth: " + str(n_components_a_s[1]))
+    plt.legend()
+    plt.savefig(path)
+    plt.close()
+
 def plot_quad_svm(lrsPCA, path):
     C_values = np.logspace(-3, -1, num=3)
 
