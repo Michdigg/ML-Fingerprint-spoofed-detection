@@ -12,9 +12,36 @@ from libs.svm import *
 from libs.gaussian_mixture_models import *
 
 if __name__=='__main__':
-    n_components = [1, 2, 4 , 6, 8]
-    for c in itertools.product(n_components, n_components):
-        print(c)
+
+    (DTR,LTR), (DTE,LTE)=load('dataset/Train.txt','dataset/Test.txt')
+    DTR = DTR.T
+    LTR = LTR.T
+    DTE = DTE.T
+
+    prior,Cfp,Cfn = (0.5,10,1)
+
+    optionsGMM1 =   {"K":5,"pca":6,"pi":0.5,"costs":(1,10),"znorm" : False}
+    optionsGMM2 =   {"K":5,"pca":8,"pi":0.5,"costs":(1,10),"znorm" : False}
+    optionsGMM3 =   {"K":5,"pca":None,"pi":0.5,"costs":(1,10),"znorm" : False}
+
+    optionsListGMM = [optionsGMM1, optionsGMM2, optionsGMM3]
+
+    modes_auth_spoofed = ["full", "diag", "tied"]
+    n_components_auth_spoofed = [1, 2, 4 , 6, 8]
+    gmm_res = {"6" : [], "8" : [], "None" : []}
+    print("GMM")
+    for modes_a_s in itertools.product(modes_auth_spoofed, modes_auth_spoofed):
+        for n_components_a_s in itertools.product(n_components_auth_spoofed, n_components_auth_spoofed):
+            for i, options in enumerate(optionsListGMM):
+                GMMModel = GMMClassificator(n_components_a_s, modes_a_s, 0.01, 0.1, prior, Cfp, Cfn) 
+                min_DCF, scores, labels = kfold(DTR, LTR, GMMModel, options)
+                min_DCF = min_DCF if min_DCF <= 1 else 1
+                gmm_res[str(options["pca"])].append(min_DCF)
+                print("Not-Target mode : " + str(modes_a_s[0]) + " Target mode: " + str(modes_a_s[1]) 
+                      + " Not-Target components : " + str(n_components_a_s[0]) + " Target components: " + str(n_components_a_s[1]) 
+                      + " PCA: " + str(options["pca"]) + " DCF min: " + str(min_DCF))
+
+    plot_gmm(gmm_res, modes_a_s, n_components_a_s, "plots/gaussian_mixture_models/GMM_AUTH" + str(modes_a_s[1] + str(n_components_a_s[1]) + "_SPOOFED") + str(modes_a_s[1] + str(n_components_a_s[1])))
 
 if __name__=='a':
     
@@ -240,4 +267,4 @@ if __name__=='a':
                       + " Not-Target components : " + str(n_components_a_s[0]) + " Target components: " + str(n_components_a_s[1]) 
                       + " PCA: " + str(options["pca"]) + " DCF min: " + str(min_DCF))
 
-            plot_gmm(gmm_res, modes_a_s, n_components, "plots/gaussian_mixture_models/GMM_AUTH" + str(modes_a_s[1] + str(n_components_a_s[1]) + "_SPOOFED") + str(modes_a_s[1] + str(n_components_a_s[1])))
+            plot_gmm(gmm_res, modes_a_s, n_components_a_s, "plots/gaussian_mixture_models/GMM_AUTH" + str(modes_a_s[1] + str(n_components_a_s[1]) + "_SPOOFED") + str(modes_a_s[1] + str(n_components_a_s[1])))
