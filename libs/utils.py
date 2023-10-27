@@ -137,7 +137,7 @@ def plot_svm(lrsPCA, lrsPCAZnorm, path):
     plt.close()
 
 def plot_quad_svm(lrsPCA, path):
-    C_values = np.logspace(-5, 2, num=8)
+    C_values = np.logspace(-3, -1, num=3)
 
     plt.semilogx(C_values,lrsPCA["6"], label = "PCA 7")
     plt.semilogx(C_values,lrsPCA["8"], label = "PCA 8")
