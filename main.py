@@ -158,7 +158,7 @@ if __name__=='a':
                 min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
                 lrsPCAZnorm[str(options["pca"])].append(min_DCF)
 
-        plot_log_reg(lrsPCA, lrsPCAZnorm, "plots/logistic_regression/lr_" + str(pi))
+        plot_log_reg(lrsPCA, lrsPCAZnorm, "plots/logistic_regression/lr_" + str(pi) + ".png")
     
     # Quadratic Logistic Regression
 
@@ -177,7 +177,7 @@ if __name__=='a':
                 min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
                 lrsPCAZnorm[str(options["pca"])].append(min_DCF)
         
-        plot_log_reg(lrsPCA, lrsPCAZnorm, "plots/logistic_regression/quadratic/lr_" + str(pi))
+        plot_log_reg(lrsPCA, lrsPCAZnorm, "plots/logistic_regression/quadratic/lr_" + str(pi) + ".png")
 
     """ 5. Support Vector Machines """
 
