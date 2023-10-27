@@ -14,6 +14,55 @@ if __name__=='__main__':
     DTR = DTR.T
     LTR = LTR.T
     DTE = DTE.T
+    
+    optionsSVM1 =   {"K":5,"pca":6,"pi":0.5,"costs":(1,10),"znorm" : False}
+    optionsSVM2 =   {"K":5,"pca":8,"pi":0.5,"costs":(1,10),"znorm" : False}
+    optionsSVM3 =   {"K":5,"pca":None,"pi":0.5,"costs":(1,10),"znorm" : False}
+
+    optionsListSVM = [optionsSVM1, optionsSVM2, optionsSVM3]
+
+    optionsSVM1Znorm =   {"K":5,"pca":6,"pi":0.5,"costs":(1,10),"znorm" : True}
+    optionsSVM2Znorm =   {"K":5,"pca":8,"pi":0.5,"costs":(1,10),"znorm" : True}
+    optionsSVM3Znorm =   {"K":5,"pca":None,"pi":0.5,"costs":(1,10),"znorm" : True}
+
+    optionsListSVMZnorm = [optionsSVM1Znorm, optionsSVM2Znorm, optionsSVM3Znorm]
+
+    # Quadratic SVM - Polynomial Kernel
+    print("Polynomial Kernel")
+    for value in [0, 1]:  
+        quad_svm_res = {"6" : [], "8" : [], "None" : []}
+        for K_svm in [0,1]:
+            for C in np.logspace(-3, -1, num=3):
+                for i, options in enumerate(optionsListSVM):
+                    SVMkernelModel = SVMKernelClassificator(K_svm, C, 0.1, "polynomial", value)
+                    min_DCF, scores, labels = kfold(DTR, LTR, SVMkernelModel, options)
+                    min_DCF = min_DCF if min_DCF <= 1 else 1
+                    quad_svm_res[str(options["pca"])].append(min_DCF)
+                    print("Value: " + str(value) + ", K: " + str(K_svm) + ", C:" + C + ", PCA " + str(options["pca"]) + ": minDCF: " + str(min_DCF))
+            
+            plot_quad_svm(quad_svm_res, "plots/support_vectors_machines/quadratic/polynomial/SVM_polynomialC" + str(value) + "K" + str(K_svm) + ".png")   
+    
+    # Quadratic SVM - RBF
+    print("RBF")
+    for value in [0.01,0.001,0.0001]:  
+        quad_svm_res = {"6" : [], "8" : [], "None" : []}
+        for K_svm in [0,1]:
+            for C in np.logspace(-3, -1, num=3):
+                for i, options in enumerate(optionsListSVM):
+                    SVMkernelModel = SVMKernelClassificator(K_svm, C, 0.1, "RBF", value)
+                    min_DCF, scores, labels = kfold(DTR, LTR, SVMkernelModel, options)
+                    min_DCF = min_DCF if min_DCF <= 1 else 1
+                    quad_svm_res[str(options["pca"])].append(min_DCF)
+                    print("Value: " + str(value) + ", K: " + str(K_svm) + ", C:" + C + ", PCA " + str(options["pca"]) + ": minDCF: " + str(min_DCF))
+            
+            plot_quad_svm(quad_svm_res, "plots/support_vectors_machines/quadratic/RBF/SVM_polynomialGamma" + str(value) + "K" + str(K_svm) + ".png")
+
+if __name__=='a':
+    
+    (DTR,LTR), (DTE,LTE)=load('dataset/Train.txt','dataset/Test.txt')
+    DTR = DTR.T
+    LTR = LTR.T
+    DTE = DTE.T
 
     prior,Cfp,Cfn = (0.5,10,1)
     optionsPca6 =   {"K":5,"pca":6,"pi":0.5,"costs":(1,10),"znorm" : False}
@@ -32,34 +81,6 @@ if __name__=='__main__':
 
     optionsListZNorm = [optionsPca6ZNorm, optionsPca7ZNorm, optionsPca8ZNorm, optionsPca9ZNorm, optionsNoPcaZNorm]
 
-    for pi in ([0.1, 0.5, 0.9]):
-        print("Inizio..." + str(pi))
-        lrsPCA = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : [],}
-        for l in np.logspace(-6, 2, num=9):
-            for i, options in enumerate(optionsList):
-                logRegModel = LogRegClassificator(l, pi)
-                min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
-                lrsPCA[str(options["pca"])].append(min_DCF)
-                print("PCA 1")
-            print("Lambda 1")
-        print("fatto 1")
-
-        lrsPCAZnorm = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : [],}
-        for l in np.logspace(-6, 2, num=9):
-            for i, options in enumerate(optionsListZNorm):
-                logRegModel = LogRegClassificator(l, pi)
-                min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
-                lrsPCAZnorm[str(options["pca"])].append(min_DCF)
-                print("PCA 1")
-            print("Lambda 1")
-        print("fatto 2")
-
-        plot_log_reg(lrsPCA, lrsPCAZnorm, "plots/logistic_regression/lr_" + str(pi))
-        print("Salvato")
-
-    print("")
-
-if __name__=='a':
     """ 1. PLOT FEATURES """
 
     DC = center_data(DTR)

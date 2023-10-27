@@ -107,7 +107,7 @@ def plot_log_reg(lrsPCA, lrsPCAZnorm, path):
     plt.semilogx(lamb,lrsPCA["7"], label = "PCA 7")
     plt.semilogx(lamb,lrsPCA["8"], label = "PCA 8")
     plt.semilogx(lamb,lrsPCA["9"], label = "PCA 9")
-    plt.semilogx(lamb,lrsPCA["None"], label = "No PCA Znorm")
+    plt.semilogx(lamb,lrsPCA["None"], label = "No PCA")
     plt.semilogx(lamb,lrsPCAZnorm["6"], label = "PCA 6 Znorm")
     plt.semilogx(lamb,lrsPCAZnorm["7"], label = "PCA 7 Znorm")
     plt.semilogx(lamb,lrsPCAZnorm["8"], label = "PCA 8 Znorm")
@@ -125,10 +125,23 @@ def plot_svm(lrsPCA, lrsPCAZnorm, path):
 
     plt.semilogx(C_values,lrsPCA["6"], label = "PCA 7")
     plt.semilogx(C_values,lrsPCA["8"], label = "PCA 8")
-    plt.semilogx(C_values,lrsPCA["None"], label = "No PCA Znorm")
+    plt.semilogx(C_values,lrsPCA["None"], label = "No PCA")
     plt.semilogx(C_values,lrsPCAZnorm["6"], label = "PCA 7 Znorm")
     plt.semilogx(C_values,lrsPCAZnorm["8"], label = "PCA 8 Znorm")
     plt.semilogx(C_values,lrsPCAZnorm["None"], label = "No PCA Znorm")
+   
+    plt.xlabel("C")
+    plt.ylabel("DCF_min")
+    plt.legend()
+    plt.savefig(path)
+    plt.close()
+
+def plot_quad_svm(lrsPCA, path):
+    C_values = np.logspace(-5, 2, num=8)
+
+    plt.semilogx(C_values,lrsPCA["6"], label = "PCA 7")
+    plt.semilogx(C_values,lrsPCA["8"], label = "PCA 8")
+    plt.semilogx(C_values,lrsPCA["None"], label = "No PCA")
    
     plt.xlabel("C")
     plt.ylabel("DCF_min")
