@@ -38,7 +38,7 @@ if __name__=='__main__':
                     min_DCF, scores, labels = kfold(DTR, LTR, SVMkernelModel, options)
                     min_DCF = min_DCF if min_DCF <= 1 else 1
                     quad_svm_res[str(options["pca"])].append(min_DCF)
-                    print("Value: " + str(value) + ", K: " + str(K_svm) + ", C:" + C + ", PCA " + str(options["pca"]) + ": minDCF: " + str(min_DCF))
+                    print("Value: " + str(value) + ", K: " + str(K_svm) + ", C:" + str(C) + ", PCA " + str(options["pca"]) + ": minDCF: " + str(min_DCF))
             
             plot_quad_svm(quad_svm_res, "plots/support_vectors_machines/quadratic/polynomial/SVM_polynomialC" + str(value) + "K" + str(K_svm) + ".png")   
     
@@ -53,7 +53,7 @@ if __name__=='__main__':
                     min_DCF, scores, labels = kfold(DTR, LTR, SVMkernelModel, options)
                     min_DCF = min_DCF if min_DCF <= 1 else 1
                     quad_svm_res[str(options["pca"])].append(min_DCF)
-                    print("Value: " + str(value) + ", K: " + str(K_svm) + ", C:" + C + ", PCA " + str(options["pca"]) + ": minDCF: " + str(min_DCF))
+                    print("Value: " + str(value) + ", K: " + str(K_svm) + ", C:" + str(C) + ", PCA " + str(options["pca"]) + ": minDCF: " + str(min_DCF))
             
             plot_quad_svm(quad_svm_res, "plots/support_vectors_machines/quadratic/RBF/SVM_polynomialGamma" + str(value) + "K" + str(K_svm) + ".png")
 
