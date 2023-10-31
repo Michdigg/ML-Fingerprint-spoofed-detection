@@ -19,29 +19,37 @@ if __name__=='__main__':
     DTE = DTE.T
 
     prior,Cfp,Cfn = (0.5,10,1)
+    pca= [6, None]
+    znorm = [True, False]
+    pi_tilde=(prior * Cfn) / (prior * Cfn + (1 - prior) * Cfp)
 
-    optionsGMM1 =   {"K":5,"pca":6,"pi":0.5,"costs":(1,10),"znorm" : False}
-    optionsGMM2 =   {"K":5,"pca":8,"pi":0.5,"costs":(1,10),"znorm" : False}
-    optionsGMM3 =   {"K":5,"pca":None,"pi":0.5,"costs":(1,10),"znorm" : False}
+    lrsPCA = {"6" : [], "None" : []}  
+    lrsPCAZNorm = {"6" : [], "None" : []}
+    for pca_znorm in itertools.product(pca, znorm):
+        pca = pca_znorm[0]
+        znorm = pca_znorm[1]
+        for l in np.logspace(-4, 0, num=4):
+            quadLogObj=QuadLogRegClassificator(l, pi_tilde)
+            DTRt = DTR
+            DTEt = DTE
+            if znorm == True:
+                DTRt,mu,sigma= normalize_zscore(DTR)
+                DTEt,_,_ = normalize_zscore(DTE,mu,sigma)
 
-    optionsListGMM = [optionsGMM1, optionsGMM2, optionsGMM3]
+            if pca is not None:
+                DTRt, P = PCA_impl(DTR, pca)
+                DTEt = np.dot(P.T, DTE)
 
-    modes_auth_spoofed = ["full", "diag", "tied"]
-    n_components_auth_spoofed = [1, 2, 4 , 6, 8]
-    print("GMM")
-    for modes_a_s in itertools.product(modes_auth_spoofed, modes_auth_spoofed):
-        gmm_res = {"6" : [], "8" : [], "None" : []}
-        for n_components_a_s in itertools.product(n_components_auth_spoofed, n_components_auth_spoofed):
-            for i, options in enumerate(optionsListGMM):
-                GMMModel = GMMClassificator(n_components_a_s, modes_a_s, 0.01, 0.1, prior, Cfp, Cfn) 
-                min_DCF, scores, labels = kfold(DTR, LTR, GMMModel, options)
-                min_DCF = min_DCF if min_DCF <= 1 else 1
-                gmm_res[str(options["pca"])].append(min_DCF)
-                print("Not-Target mode : " + str(modes_a_s[0]) + " Target mode: " + str(modes_a_s[1]) 
-                      + " Not-Target components : " + str(n_components_a_s[0]) + " Target components: " + str(n_components_a_s[1]) 
-                      + " PCA: " + str(options["pca"]) + " DCF min: " + str(min_DCF))
-
-        plot_gmm(gmm_res, modes_a_s, n_components_a_s, "plots/gaussian_mixture_models/GMM_AUTH" + str(modes_a_s[1] + str(n_components_a_s[1]) + "_SPOOFED") + str(modes_a_s[1] + str(n_components_a_s[1])))
+            quadLogObj.train(DTRt, LTR);
+            lr_scores = quadLogObj.compute_scores(DTEt)
+            lr_scores = np.array(lr_scores)
+            min_DCF,_,_ = DCF_min_impl(lr_scores, LTE, prior, Cfp, Cfn)
+            
+            if znorm == False:
+                lrsPCA[str(pca)].append(min_DCF)
+            else:
+                lrsPCAZNorm[str(pca)].append(min_DCF)
+    plot_log_reg_ev(lrsPCA, lrsPCAZNorm, "plots/evaluation/quadratic_lr.png")
 
 if __name__=='a':
     
@@ -100,6 +108,8 @@ if __name__=='a':
     plot_correlations(DTR[:, LTR == 0], "plots/feature_display/pearson_correlation_authentic_dataset", cmap="Blues")
     plot_correlations(DTR[:, LTR == 1], "plots/feature_display/pearson_correlation_spoofed_dataset", cmap="Reds")
 
+    " ------------------------------------------- TRAINING ------------------------------------------- "
+
     """ 3. Gaussian Classificator """
 
     #MVG
@@ -153,15 +163,15 @@ if __name__=='a':
     for pi in ([0.1, 0.5, 0.9]):
         lrsPCA = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : []}
         for l in np.logspace(-6, 2, num=9):
+            logRegModel = LogRegClassificator(l, pi)
             for i, options in enumerate(optionsList):
-                logRegModel = LogRegClassificator(l, pi)
                 min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
                 lrsPCA[str(options["pca"])].append(min_DCF)
 
         lrsPCAZnorm = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : []}
         for l in np.logspace(-6, 2, num=9):
+            logRegModel = LogRegClassificator(l, pi)
             for i, options in enumerate(optionsListZNorm):
-                logRegModel = LogRegClassificator(l, pi)
                 min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
                 lrsPCAZnorm[str(options["pca"])].append(min_DCF)
 
@@ -172,15 +182,15 @@ if __name__=='a':
     for pi in ([0.1, 0.5, 0.9]):
         lrsPCA = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : []}
         for l in np.logspace(-6, 2, num=9):
+            logRegModel = QuadLogRegClassificator(l, pi)
             for i, options in enumerate(optionsList):
-                logRegModel = QuadLogRegClassificator(l, pi)
                 min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
                 lrsPCA[str(options["pca"])].append(min_DCF)
 
         lrsPCAZnorm = {"6" : [], "7" : [], "8" : [], "9" : [], "None" : []}
         for l in np.logspace(-6, 2, num=9):
+            logRegModel = QuadLogRegClassificator(l, pi)
             for i, options in enumerate(optionsListZNorm):
-                logRegModel = QuadLogRegClassificator(l, pi)
                 min_DCF, scores, labels = kfold(DTR, LTR, logRegModel, options)
                 lrsPCAZnorm[str(options["pca"])].append(min_DCF)
         
@@ -205,14 +215,13 @@ if __name__=='a':
     svm_res = {"6" : [], "8" : [], "None" : []}
     svm_res_Znorm = {"6" : [], "8" : [], "None" : []}
     for C in np.logspace(-5, 2, num=8):
+        SVMModel = SVMClassificator(1, C, 0.1)
         for i, options in enumerate(optionsListSVM):
-            SVMModel = SVMClassificator(1, C, 0.1)
-            min_DCF, scores, labels = kfold(DTR, LTR, SVMModel,options)
+            min_DCF, scores, labels = kfold(DTR, LTR, SVMModel, options)
             min_DCF = min_DCF if min_DCF <= 1 else 1
             svm_res[str(options["pca"])].append(min_DCF)
             
         for i, options in enumerate(optionsListSVMZnorm):
-            SVMModel = SVMClassificator(1, C, 0.1)
             min_DCF, scores, labels = kfold(DTR, LTR, SVMModel,options)
             min_DCF = min_DCF if min_DCF <= 1 else 1
             svm_res_Znorm[str(options["pca"])].append(min_DCF)
@@ -224,8 +233,8 @@ if __name__=='a':
         quad_svm_res = {"6" : [], "8" : [], "None" : []}
         for K_svm in [0,1]:
             for C in np.logspace(-3, -1, num=3):
+                SVMkernelModel = SVMKernelClassificator(K_svm, C, 0.1, "polynomial", value)
                 for i, options in enumerate(optionsListSVM):
-                    SVMkernelModel = SVMKernelClassificator(K_svm, C, 0.1, "polynomial", value)
                     min_DCF, scores, labels = kfold(DTR, LTR, SVMkernelModel, options)
                     min_DCF = min_DCF if min_DCF <= 1 else 1
                     quad_svm_res[str(options["pca"])].append(min_DCF)
@@ -237,8 +246,8 @@ if __name__=='a':
         quad_svm_res = {"6" : [], "8" : [], "None" : []}
         for K_svm in [0,1]:
             for C in np.logspace(-3, -1, num=3):
+                SVMkernelModel = SVMKernelClassificator(K_svm, C, 0.1, "RBF", value)
                 for i, options in enumerate(optionsListSVM):
-                    SVMkernelModel = SVMKernelClassificator(K_svm, C, 0.1, "RBF", value)
                     min_DCF, scores, labels = kfold(DTR, LTR, SVMkernelModel, options)
                     min_DCF = min_DCF if min_DCF <= 1 else 1
                     quad_svm_res[str(options["pca"])].append(min_DCF)
@@ -258,8 +267,8 @@ if __name__=='a':
     for modes_a_s in itertools.product(modes_auth_spoofed, modes_auth_spoofed):
         for n_components_a_s in itertools.product(n_components_auth_spoofed, n_components_auth_spoofed):
             gmm_res = {"6" : [], "8" : [], "None" : []}
+            GMMModel = GMMClassificator(n_components_a_s, modes_a_s, 0.01, 0.1, prior, Cfp, Cfn) 
             for i, options in enumerate(optionsListGMM):
-                GMMModel = GMMClassificator(n_components_a_s, modes_a_s, 0.01, 0.1, prior, Cfp, Cfn) 
                 min_DCF, scores, labels = kfold(DTR, LTR, GMMModel, options)
                 min_DCF = min_DCF if min_DCF <= 1 else 1
                 gmm_res[str(options["pca"])].append(min_DCF)
@@ -268,3 +277,80 @@ if __name__=='a':
                       + " PCA: " + str(options["pca"]) + " DCF min: " + str(min_DCF))
 
             plot_gmm(gmm_res, modes_a_s, n_components_a_s, "plots/gaussian_mixture_models/GMM_AUTH" + str(modes_a_s[1] + str(n_components_a_s[1]) + "_SPOOFED") + str(modes_a_s[1] + str(n_components_a_s[1])))
+
+    " ------------------------------------------- EVALUATION  -------------------------------------------"
+
+    """ 7. LOGISTIC REGRESSION """
+
+    prior,Cfp,Cfn = (0.5,10,1)
+    pca= [6, None]
+    znorm = [True, False]
+    pi_tilde=(prior * Cfn) / (prior * Cfn + (1 - prior) * Cfp)
+
+    lrsPCA = {"6" : [], "None" : []}  
+    lrsPCAZNorm = {"6" : [], "None" : []}
+    print("Inizio")
+    for pca_znorm in itertools.product(pca, znorm):
+        pca = pca_znorm[0]
+        znorm = pca_znorm[1]
+        for l in np.logspace(-3, 0, num=4):
+            quadLogObj = QuadLogRegClassificator(l, pi_tilde)
+            DTRt = DTR
+            DTEt = DTE
+            if znorm == True:
+                DTRt,mu,sigma= normalize_zscore(DTR)
+                DTEt,_,_ = normalize_zscore(DTE,mu,sigma)
+
+            if pca is not None:
+                DTRt, P = PCA_impl(DTRt, pca)
+                DTEt = np.dot(P.T, DTEt)
+
+            quadLogObj.train(DTRt, LTR);
+            lr_scores = quadLogObj.compute_scores(DTEt)
+            lr_scores = np.array(lr_scores)
+            min_DCF,_,_ = DCF_min_impl(lr_scores, LTE, prior, Cfp, Cfn)
+            print("pca: " + str(pca_znorm[0]) + " znorm: " + str(pca_znorm[1]) + " l: " + str(l) + " mic_DCF: " + str(min_DCF))
+            
+            if znorm == False:
+                lrsPCA[str(pca)].append(min_DCF)
+            else:
+                lrsPCAZNorm[str(pca)].append(min_DCF)
+    plot_log_reg_ev(lrsPCA, lrsPCAZNorm, "plots/evaluation/quadratic_lr.png")
+
+    """ 8. SVM - POLYNOMIAL KERNEL """
+
+    prior,Cfp,Cfn = (0.5,10,1)
+    pca= [6, None]
+    znorm = [True, False]
+    pi_tilde=(prior * Cfn) / (prior * Cfn + (1 - prior) * Cfp)
+
+    lrsPCA = {"6" : [], "None" : []}  
+    lrsPCAZNorm = {"6" : [], "None" : []}
+    print("Inizio")
+    for c in [0,1]:
+        for pca_znorm in itertools.product(pca, znorm):
+            pca = pca_znorm[0]
+            znorm = pca_znorm[1]
+            for C in np.logspace(-4, 1, num=6):
+                SVMObj = SVMKernelClassificator(K_svm, C, pi_tilde, "polynomial", c)
+                DTRt = DTR
+                DTEt = DTE
+                if znorm == True:
+                    DTRt,mu,sigma= normalize_zscore(DTR)
+                    DTEt,_,_ = normalize_zscore(DTE,mu,sigma)
+
+                if pca is not None:
+                    DTRt, P = PCA_impl(DTRt, pca)
+                    DTEt = np.dot(P.T, DTEt)
+
+                SVMObj.train(DTRt, LTR);
+                lr_scores = SVMObj.compute_scores(DTEt)
+                lr_scores = np.array(lr_scores)
+                min_DCF,_,_ = DCF_min_impl(lr_scores, LTE, prior, Cfp, Cfn)
+                print("pca: " + str(pca_znorm[0]) + " znorm: " + str(pca_znorm[1]) + " C: " + str(C) + " c: " + str(c) + " mic_DCF: " + str(min_DCF))
+                
+                if znorm == False:
+                    lrsPCA[str(pca)].append(min_DCF)
+                else:
+                    lrsPCAZNorm[str(pca)].append(min_DCF)
+        plot_SVM_ev(lrsPCA, lrsPCAZNorm, "plots/evaluation/SVMPolc " + str(c) + ".png")
