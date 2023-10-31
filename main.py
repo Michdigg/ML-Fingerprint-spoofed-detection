@@ -13,50 +13,7 @@ from libs.gaussian_mixture_models import *
 from libs.calibration import *
 from libs.evaluation import *
 
-if __name__=='__main__':
-
-    (DTR,LTR), (DTE,LTE)=load('dataset/Train.txt','dataset/Test.txt')
-    DTR = DTR.T
-    LTR = LTR.T
-    DTE = DTE.T
-
-    prior,Cfp,Cfn = (0.5,10,1)
-    pca_list = [6, None]
-    znorm_list = [True, False]
-    pi_tilde=(prior * Cfn) / (prior * Cfn + (1 - prior) * Cfp)
-
-    print("Inizio")
-    for gamma in [0.0001, 0.001, 0.01]:
-        lrsPCA = {"6" : [], "None" : []}  
-        lrsPCAZNorm = {"6" : [], "None" : []}
-        for pca_znorm in itertools.product(pca_list, znorm_list):
-            pca = pca_znorm[0]
-            znorm = pca_znorm[1]
-            for C in np.logspace(-4, 1, num=6):
-                SVMObj = SVMKernelClassificator(0, C, pi_tilde, "RBF", gamma)
-                DTRt = DTR
-                DTEt = DTE
-                if znorm == True:
-                    DTRt,mu,sigma= normalize_zscore(DTR)
-                    DTEt,_,_ = normalize_zscore(DTE,mu,sigma)
-
-                if pca is not None:
-                    DTRt, P = PCA_impl(DTRt, pca)
-                    DTEt = np.dot(P.T, DTEt)
-
-                SVMObj.train(DTRt, LTR);
-                lr_scores = SVMObj.compute_scores(DTEt)
-                lr_scores = np.array(lr_scores)
-                min_DCF,_,_ = DCF_min_impl(lr_scores, LTE, prior, Cfp, Cfn)
-                print("pca: " + str(pca_znorm[0]) + " znorm: " + str(pca_znorm[1]) + " C: " + str(C) + " gamma: " + str(gamma) + " mic_DCF: " + str(min_DCF))
-                
-                if znorm == False:
-                    lrsPCA[str(pca)].append(min_DCF)
-                else:
-                    lrsPCAZNorm[str(pca)].append(min_DCF)
-        plot_SVM_ev(lrsPCA, lrsPCAZNorm, "plots/evaluation/SVMrbfGamma " + str(gamma) + ".png")
-
-if __name__=='a':
+if __name__== "main":
     
     (DTR,LTR), (DTE,LTE)=load('dataset/Train.txt','dataset/Test.txt')
     DTR = DTR.T
