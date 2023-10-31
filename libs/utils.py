@@ -148,6 +148,20 @@ def plot_SVM_ev(lrsPCA, lrsPCAZnorm, path):
     plt.savefig(path)
     plt.close()
 
+def plot_GMM_ev(lrsPCA, lrsPCAZnorm, path):
+    C = np.logspace(-4, 1, num=6)
+
+    plt.semilogx(C,lrsPCA["6"], label = "PCA 6")
+    plt.semilogx(C,lrsPCA["None"], label = "No PCA")
+    plt.semilogx(C,lrsPCAZnorm["6"], label = "PCA 6 Znorm")
+    plt.semilogx(C,lrsPCAZnorm["None"], label = "No PCA Znorm")
+   
+    plt.xlabel("C")
+    plt.ylabel("DCF_min")
+    plt.legend()
+    plt.savefig(path)
+    plt.close()
+
 def plot_svm(lrsPCA, lrsPCAZnorm, path):
     C_values = np.logspace(-5, 2, num=8)
 
