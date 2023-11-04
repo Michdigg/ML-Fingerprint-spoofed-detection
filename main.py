@@ -1,7 +1,6 @@
 import sys
 import numpy as np
 import itertools
-import matplotlib.pyplot as plt
 sys.path.insert(0, 'libs')
 sys.path.insert(1, 'dataset')
 from libs.utils import *
