@@ -13,7 +13,7 @@ from libs.gaussian_mixture_models import *
 from libs.calibration import *
 from libs.evaluation import *
 
-if __name__== "main":
+if __name__== "__main__":
     
     (DTR,LTR), (DTE,LTE)=load('dataset/Train.txt','dataset/Test.txt')
     DTR = DTR.T
