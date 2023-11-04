@@ -120,6 +120,48 @@ def plot_log_reg(lrsPCA, lrsPCAZnorm, path):
     plt.savefig(path)
     plt.close()
 
+def plot_log_reg_ev(lrsPCA, lrsPCAZnorm, path):
+    lamb = np.logspace(-3, 0, num=4)
+
+    plt.semilogx(lamb,lrsPCA["6"], label = "PCA 6")
+    plt.semilogx(lamb,lrsPCA["None"], label = "No PCA")
+    plt.semilogx(lamb,lrsPCAZnorm["6"], label = "PCA 6 Znorm")
+    plt.semilogx(lamb,lrsPCAZnorm["None"], label = "No PCA Znorm")
+   
+    plt.xlabel("Lambda")
+    plt.ylabel("DCF_min")
+    plt.legend()
+    plt.savefig(path)
+    plt.close()
+
+def plot_SVM_ev(lrsPCA, lrsPCAZnorm, path):
+    C = np.logspace(-4, 1, num=6)
+
+    plt.semilogx(C,lrsPCA["6"], label = "PCA 6")
+    plt.semilogx(C,lrsPCA["None"], label = "No PCA")
+    plt.semilogx(C,lrsPCAZnorm["6"], label = "PCA 6 Znorm")
+    plt.semilogx(C,lrsPCAZnorm["None"], label = "No PCA Znorm")
+   
+    plt.xlabel("C")
+    plt.ylabel("DCF_min")
+    plt.legend()
+    plt.savefig(path)
+    plt.close()
+
+def plot_GMM_ev(lrsPCA, lrsPCAZnorm, path):
+    C = np.logspace(-4, 1, num=6)
+
+    plt.semilogx(C,lrsPCA["6"], label = "PCA 6")
+    plt.semilogx(C,lrsPCA["None"], label = "No PCA")
+    plt.semilogx(C,lrsPCAZnorm["6"], label = "PCA 6 Znorm")
+    plt.semilogx(C,lrsPCAZnorm["None"], label = "No PCA Znorm")
+   
+    plt.xlabel("C")
+    plt.ylabel("DCF_min")
+    plt.legend()
+    plt.savefig(path)
+    plt.close()
+
 def plot_svm(lrsPCA, lrsPCAZnorm, path):
     C_values = np.logspace(-5, 2, num=8)
 
@@ -132,6 +174,17 @@ def plot_svm(lrsPCA, lrsPCAZnorm, path):
    
     plt.xlabel("C")
     plt.ylabel("DCF_min")
+    plt.legend()
+    plt.savefig(path)
+    plt.close()
+
+def plot_gmm(gmm_res, modes_a_s, n_components_a_s, path):
+    plt.plot([1, 2, 4 , 6, 8], gmm_res["6"])
+    plt.plot([1, 2, 4 , 6, 8], gmm_res["8"])
+    plt.plot([1, 2, 4 , 6, 8], gmm_res["None"])
+    plt.xlabel("Components Spoofed")
+    plt.ylabel("DCF_min")
+    plt.title("Mode Authentic: " + str(modes_a_s[1]) + ", Mode Spoofed: " + str(modes_a_s[0]) + " Components Auth: " + str(n_components_a_s[1]))
     plt.legend()
     plt.savefig(path)
     plt.close()
