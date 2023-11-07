@@ -165,10 +165,10 @@ def plot_GMM_ev(lrsPCA, lrsPCAZnorm, path):
 def plot_svm(lrsPCA, lrsPCAZnorm, path):
     C_values = np.logspace(-5, 2, num=8)
 
-    plt.semilogx(C_values,lrsPCA["6"], label = "PCA 7")
+    plt.semilogx(C_values,lrsPCA["6"], label = "PCA 6")
     plt.semilogx(C_values,lrsPCA["8"], label = "PCA 8")
     plt.semilogx(C_values,lrsPCA["None"], label = "No PCA")
-    plt.semilogx(C_values,lrsPCAZnorm["6"], label = "PCA 7 Znorm")
+    plt.semilogx(C_values,lrsPCAZnorm["6"], label = "PCA 6 Znorm")
     plt.semilogx(C_values,lrsPCAZnorm["8"], label = "PCA 8 Znorm")
     plt.semilogx(C_values,lrsPCAZnorm["None"], label = "No PCA Znorm")
    
