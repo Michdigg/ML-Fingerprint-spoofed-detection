@@ -159,6 +159,8 @@ if __name__== "__main__":
 
     """ 5. Support Vector Machines """
 
+    print('ciao')
+
     # Linear SVM
 
     optionsSVM1 =   {"K":5,"pca":6,"pi":0.5,"costs":(1,10),"znorm" : False}
